@@ -1,5 +1,9 @@
 #include "jiho.h"
 
+#include <Adafruit_NeoPixel.h>
+#include <Arduino.h>
+#include <Wire.h>
+
 // ESP8266 and sensors initialize
 void sensorSetup()
 {
@@ -19,11 +23,20 @@ void sensorSetup()
   lcd.begin(16,2);
 }
 
-// LED brightness (%)
-void LEDControl(float state)
+// LED brightness
+void ledOn()
 {
-  analogWrite(state*10.23);
+  int PIN = 5;
+  Adafruit_NeoPixel strip = Adafruit_NeoPixel(16, PIN, NEO_GRB + NEO_KHZ800);
+  
+  strip.begin();
+  strip.show(); 
+
+  for(int i=0; i<strip.numPixels(); i++) 
+      strip.setPixelColor(i, strip.Color(255, 0, 255));
+  strip.show();
 }
+
 
 // get temperature data from MPU6050
 float getTemp()
