@@ -24,6 +24,8 @@ void LEDControl(float state);
 float getTemp();
 // get humidity_of_soil data from SZH-SSBH-074
 float getHumid();
+// using DHT11 sensor with polling method
+int readDHT11(int *readTemp, int* readHumid);
 // export data to LCD
 void displayLCD(float temp, float humid);
 // get current weather data from Openweather API
