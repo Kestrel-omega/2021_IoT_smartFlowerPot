@@ -11,7 +11,7 @@ void sensorSetup()
   // SZH-SSBH-074 Setting
   pinMode(sensorPin, INPUT);
   // LCD Setting
-  LiquidCrystal lcd(RS, E, D1, D2, D3, D4);
+  LiquidCrystal lcd(D6, D5, D1, D2, D3, D4);
   lcd.begin(16,2);
   Serial.begin(115200);
   delay(100);
