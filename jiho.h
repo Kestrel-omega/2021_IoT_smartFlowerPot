@@ -4,6 +4,14 @@
 #include <ESP8266WiFi.h>
 #include <Wire.h>
 #include <LiquidCrystal.h>
+#include <ESP8266WiFi.h>
+#include <ESP8266HTTPClient.h>
+#include <ArduinoJson.h>
+
+#define DHT11PIN 14 //D4
+
+HTTPClient MyClient;
+DynamicJsonDocument doc(2048);
 
 int ledPin = 13;
 int sensorPin = 6;
@@ -29,6 +37,6 @@ int readDHT11(int *readTemp, int* readHumid);
 // export data to LCD
 void displayLCD(float temp, float humid);
 // get current weather data from Openweather API
-void getWeather();
+void getWeather(float *temp, float *humid);
 
 #endif
