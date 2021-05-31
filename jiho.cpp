@@ -21,6 +21,16 @@ void sensorSetup()
   // LCD Setting
   LiquidCrystal lcd(RS, E, D4, D5, D6, D7);
   lcd.begin(16,2);
+  Serial.begin(115200);
+  delay(100);
+  WiFi.begin("KT_Giga_Wifi", "");
+  while(1)
+  {
+    if(WiFi.status() == WL_CONNECTED) break;
+    else delay(100);
+  }
+  Serial.printf("WiFi Connected!\r\n");
+  
 }
 
 // LED brightness
@@ -128,7 +138,18 @@ int readDHT11(int *readTemp, int* readHumid)
 }
 
 // get current weather data from Openweather API
-void getWeather()
+void getWeather(float *temp, float *humid)
 {
-  
+  myClient.begin("http://api.openweathermap.org/data/2.5/weather?q=seongnam&appid=95a4855b2d6b5d5228cc00bf3ed6c3e5");
+  int getResult = myClient.GET();
+  if(getResult == HTTP_CODE_OK) // 200
+  {
+    String receivedData = myClient.getString();
+    Serial.printf("%s\r\n\r\nEND\r\n\r\n", receivedData.c_str());
+    deserializeJson(doc, receivedData); // 해석 완료
+    const char* city = doc["name"]; // 도시 이름
+    const char* weather = doc["weather"][0]["main"]; // 대략적 상태
+    float temp = (float)(doc["main"]["temp"]) - 273.0; // 기온
+    float humid = (float)doc["main"]["humidity"]; // 습도
+    delay(5000);
 }
