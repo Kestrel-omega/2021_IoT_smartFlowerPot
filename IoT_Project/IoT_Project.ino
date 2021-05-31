@@ -26,7 +26,7 @@ void setup()
   lcd.begin(16,2);
   Serial.begin(115200);
   delay(100);
-  WiFi.begin("KT_Giga_Wifi", "kestrel9864");
+  WiFi.begin("KT_Giga_Wifi", "");
   while(1)
   {
     if(WiFi.status() == WL_CONNECTED) break;
