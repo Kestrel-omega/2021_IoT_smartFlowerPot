@@ -2,24 +2,16 @@
 
 #include <Adafruit_NeoPixel.h>
 #include <Arduino.h>
-#include <Wire.h>
 
 // ESP8266 and sensors initialize
 void sensorSetup()
 {
   // LED Setting
   pinMode(ledPin, OUTPUT);
-  // MPU6050 Setting
-  Wire.begin(4, 5);
-  Wire.beginTransmission(MPU_ADDR);
-  Wire.write(0x6B);
-  Wire.write(0x01);
-  Wire.write(0x1C);
-  Wire.write(0x00);
   // SZH-SSBH-074 Setting
   pinMode(sensorPin, INPUT);
   // LCD Setting
-  LiquidCrystal lcd(RS, E, D4, D5, D6, D7);
+  LiquidCrystal lcd(RS, E, D1, D2, D3, D4);
   lcd.begin(16,2);
   Serial.begin(115200);
   delay(100);
