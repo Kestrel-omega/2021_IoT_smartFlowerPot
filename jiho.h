@@ -17,13 +17,6 @@ int ledPin = 13;
 int sensorPin = 6;
 int MPU_ADDR = 0x68;
 
-int RS = 12;
-int E = 11;
-int D4 = 5;
-int D5 = 4;
-int D6 = 3;
-int D7 = 2;
-
 // ESP8266 and sensors initialize
 void sensorSetup();
 // LED On
