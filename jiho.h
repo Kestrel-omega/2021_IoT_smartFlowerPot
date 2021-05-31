@@ -26,8 +26,8 @@ int D7 = 2;
 
 // ESP8266 and sensors initialize
 void sensorSetup();
-// LED brightness (%)
-void LEDControl(float state);
+// LED On
+void ledOn();
 // get temperature data from MPU6050
 float getTemp();
 // get humidity_of_soil data from SZH-SSBH-074
