@@ -1,7 +1,6 @@
 #include <ESP8266WiFi.h>
 #include <Wire.h>
 #include <LiquidCrystal.h>
-#include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 #include <ArduinoJson.h>
 #include <Adafruit_NeoPixel.h>
@@ -10,7 +9,7 @@
 
 HTTPClient myClient;
 DynamicJsonDocument doc(2048);
-LiquidCrystal lcd(D6, D5, D1, D2, D3, D4);
+LiquidCrystal lcd(12, 14, 5, 4, 0, 2);
 
 int PIN = 15; // D8
 int sensorPin = 9; // SD2
@@ -20,10 +19,9 @@ int readHumid;
 
 void setup()
 {
-  // SZH-SSBH-074 Setting
-  pinMode(sensorPin, INPUT);
   // LCD Setting
   lcd.begin(16,2);
+  lcd.clear();
   Serial.begin(115200);
   delay(100);
   WiFi.begin("KT_Giga_Wifi", "");
@@ -121,20 +119,16 @@ void getWeather(float *temp, float *humid)
 
 void loop()
 {
-  int inTemp, inHumid;
-  //float soilHumid;
-  float envTemp, envHumid;
-  readDHT11(&inTemp, &inHumid);
-  //soilHumid = getHumid();
-  //getWeather(&envTemp, &envHumid);
-  char str1[16] = {0,};
-  char str2[16] = {0,};
-  lcd.setCursor(1,0);
-  sprintf(str1,"Temp : %.2f °C", inTemp);
-  lcd.print(str1);
-  lcd.setCursor(1,1);
-  sprintf(str2,"Humid : %.2f %%", inHumid);
-  lcd.print(str2);
-  Serial.printf("%.2f %.2f \r\n",inTemp, inHumid);
-  delay(5000);
+  char buffer[4] = {0};
+  int temp, humid;
+  readDHT11(&temp, &humid);
+  char ttemp[80];
+  char thumid[80];
+  snprintf(ttemp, sizeof(ttemp), "%d", temp);
+  snprintf(thumid, sizeof(thumid), "%d", humid);
+  lcd.setCursor(0,0);
+  lcd.print(temp);
+  lcd.setCursor(0,1);
+  lcd.print(humid);
+  delay(1000);
 }
