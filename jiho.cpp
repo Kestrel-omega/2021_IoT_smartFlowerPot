@@ -7,11 +7,11 @@
 void sensorSetup()
 {
   // LED Setting
-  pinMode(ledPin, OUTPUT);
+  pinMode(LED, OUTPUT);
   // SZH-SSBH-074 Setting
-  pinMode(sensorPin, INPUT);
+  pinMode(DHT11PIN, INPUT);
   // LCD Setting
-  LiquidCrystal lcd(D6, D5, D1, D2, D3, D4);
+  LiquidCrystal lcd(RS, RW, DB4, DB5, DB6, DB7);
   lcd.begin(16,2);
   Serial.begin(115200);
   delay(100);
@@ -39,25 +39,10 @@ void ledOn()
   strip.show();
 }
 
-
-// get temperature data from MPU6050
-float getTemp()
-{
-  int16_t tempData
-  float temp = 0;
-  Wire.beginTransmission(MPU_ADDR);
-  Wire.write(0x41);
-  Wire.endTransmission(true);
-  Wire.requestFrom(MPU_ADDR, 2, true);
-  tempData = Wire.read() << 8 | Wire.read();
-  temp = (float)Tmp/340.00+36.53;
-  return temp;
-}
-
 // get humidity_of_soil data from SZH-SSBH-074
 float getHumid()
 {
-  float humid = ((1023-analogRead(sensorPin))*0.0977517);
+  float humid = (1023-analogRead(sensorPin));
   return humid;
 }
 
