@@ -22,6 +22,13 @@ ESP8266WebServer myHttpServer(80);//have to call "myHttpServer.handleClient();" 
 int conditionHumid = 50;
 int conditionWeight = 50;
 
+void settingGaeul()
+{
+  pinMode(buzzerPin,OUTPUT); //buzzer
+  Serial.begin(115200);
+  wifiset();
+  webhtml();
+}
 void wifiset()
 {
   Serial.println("wifi setting start");
@@ -49,13 +56,6 @@ void webhtml()
   myHttpServer.begin();
 }
 
-void settingGaeul()
-{
-  pinMode(buzzerPin,OUTPUT); //buzzer
-  Serial.begin(115200);
-  wifiset();
-  webhtml();
-}
 
 /////////////////////////////////////webserverFn//////////////////////////////////////
 void fnRoot(void)//callback function
@@ -114,6 +114,22 @@ void fnInput()
   }
   else myHttpServer.send(200,"text/plain","Somthing wrong");
 }
+
+void buzz(int value)
+{
+  if (value==0)
+  {
+    digitalWrite(buzzerPin,0);
+  }
+  else
+  {
+    digitalWrite(buzzerPin,1);
+    delay(1000);
+    digitalWrite(buzzerPin,0);
+    delay(1000);
+  }
+}
+
 ////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -137,21 +153,4 @@ float getloadcell()
   Serial.println(weight); //scale.get_units() returns a float
   return weight;
 }
-void webhtml()
-{
-  
-}
-void buzz(int value)
-{
-  if (value==0)
-  {
-    digitalWrite(buzzerPin,0);
-  }
-  else
-  {
-    digitalWrite(buzzerPin,1);
-    delay(1000);
-    digitalWrite(buzzerPin,0);
-    delay(1000);
-  }
-}
+
