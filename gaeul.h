@@ -3,6 +3,7 @@
 
 #include <Wire.h>
 #include <ESP8266WiFi.h>
+#include <ESP8266WebServer.h>
 #include <ESP8266HTTPClient.h>
 #include <Servo.h> 
 #include <HX711.h>
@@ -14,17 +15,25 @@
 
 HX711 scale(DOUT, CLK);
 Servo servo; 
+ESP8266WebServer myHttpServer(80);
 
 void settingGaeul();
 //setting
+void wifiset();
+//setting wifi
 void servofunc(angle);
 //servo motor contol as angle
-void getloadcell();
-//read weight
+float getloadcell();
+//return readed weight
 void webhtml();
 //html
+void buzz(int value)//
+//turn on when true, turn off when false
 
 
 #endif
+
+
+
 
 
