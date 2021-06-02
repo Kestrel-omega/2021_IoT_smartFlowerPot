@@ -9,8 +9,8 @@
 #include <HX711.h>
 
 #define calibration_factor -7050.0 
-#define DOUT  3 //data Pin
-#define CLK  2 // clk Pin
+#define DOUT  4 //data Pin
+#define CLK  5 // clk Pin
 #define servoPin 9 //servo Pin
 #define buzzerPin 12//buzz
 
