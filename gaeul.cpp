@@ -28,6 +28,10 @@ void settingGaeul()
   Serial.begin(115200);
   wifiset();
   webhtml();
+  
+  //scale.set_scale(calibration_factor); 
+  //scale.tare();  //set init value as 0
+  //servo.attach(servoPin); 
 }
 void wifiset()
 {
@@ -131,8 +135,6 @@ void buzz(int value)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
-
-
 
 void servofunc(angle)
 {
