@@ -12,10 +12,10 @@
 
 #define RS 0 //D03
 #define RW 2 //D04
-#define DB0 14 //D05
-#define DB1 15 //D08
-#define DB2 3 //RX
-#define DB3 1 //TX
+#define DB4 14 //D05
+#define DB5 15 //D08
+#define DB6 3 //RX
+#define DB7 1 //TX
 #define LED 10 //SD3
 #define DHT11PIN 16 //D01
 
