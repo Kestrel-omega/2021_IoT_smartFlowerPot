@@ -12,23 +12,34 @@
 #define DOUT  3 //data Pin
 #define CLK  2 // clk Pin
 #define servoPin 9 //servo Pin
+#define buzzerPin 12//buzz
+
 
 HX711 scale(DOUT, CLK);
 Servo servo; 
-ESP8266WebServer myHttpServer(80);
+ESP8266WebServer myHttpServer(80);//have to call "myHttpServer.handleClient();" as many as possible in loop()
+
 
 void settingGaeul();
 //setting
 void wifiset();
 //setting wifi
+void webhtml();
+//html
+
+void fnRoot(void);
+void fnStatus(void);
+void fnNotFound();
+void fnOn();
+void fnOff();
+void fnInput();
+
+void buzz(int value)//
+//turn on when true, turn off when false
 void servofunc(angle);
 //servo motor contol as angle
 float getloadcell();
 //return readed weight
-void webhtml();
-//html
-void buzz(int value)//
-//turn on when true, turn off when false
 
 
 #endif
