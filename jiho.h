@@ -1,28 +1,31 @@
+// jiho.h
+
 #ifndef __JIHO_H__
 #define __JIHO_H__
 
 #include <ESP8266WiFi.h>
 #include <Wire.h>
 #include <LiquidCrystal.h>
-#include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 #include <ArduinoJson.h>
+#include <Adafruit_NeoPixel.h>
 
-#define DHT11PIN 14 //D4
+#define RS 0 //D03
+#define RW 2 //D04
+#define DB0 14 //D05
+#define DB1 15 //D08
+#define DB2 3 //RX
+#define DB3 1 //TX
+#define LED 10 //SD3
+#define DHT11PIN 16 //D01
 
 HTTPClient MyClient;
 DynamicJsonDocument doc(2048);
-
-int ledPin = 13;
-int sensorPin = 6;
-int MPU_ADDR = 0x68;
 
 // ESP8266 and sensors initialize
 void sensorSetup();
 // LED On
 void ledOn();
-// get temperature data from MPU6050
-float getTemp();
 // get humidity_of_soil data from SZH-SSBH-074
 float getHumid();
 // using DHT11 sensor with polling method
