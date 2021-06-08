@@ -19,7 +19,7 @@
 #define LED 10 //SD3
 #define DHT11PIN 16 //D01
 
-HTTPClient MyClient;
+HTTPClient myClient;
 DynamicJsonDocument doc(2048);
 
 // ESP8266 and sensors initialize
