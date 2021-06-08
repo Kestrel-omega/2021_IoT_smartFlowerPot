@@ -34,9 +34,9 @@ void fnOn();
 void fnOff();
 void fnInput();
 
-void buzz(int value)//
+void buzz(int value);
 //turn on when true, turn off when false
-void servofunc(angle);
+void servofunc(int angle);
 //servo motor contol as angle
 float getloadcell();
 //return readed weight
