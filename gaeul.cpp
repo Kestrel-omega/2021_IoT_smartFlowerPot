@@ -136,7 +136,7 @@ void buzz(int value)
 
 ////////////////////////////////////////////////////////////////////////////////////
 
-void servofunc(angle)
+void servofunc(int angle)
 {
   for(angle > 180) 
   { 
