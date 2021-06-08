@@ -52,9 +52,9 @@ void displayLCD(float temp, float humid)
   char str1[16] = {0,};
   char str2[16] = {0,};
   lcd.setCursor(0,0);
-  snprintf(str1,"Temp : %f °C", temp);
+  sprintf(str1,"Temp : %f °C", temp);
   lcd.setCursor(0,1);
-  snprintf(str2,"Humid : %f %%", humid);
+  sprintf(str2,"Humid : %f %%", humid);
 }
 
 int readDHT11(int *readTemp, int* readHumid)
