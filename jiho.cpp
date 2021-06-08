@@ -129,4 +129,5 @@ void getWeather(float *temp, float *humid)
     float temp = (float)(doc["main"]["temp"]) - 273.0; // 기온
     float humid = (float)doc["main"]["humidity"]; // 습도
     delay(5000);
+  }
 }
