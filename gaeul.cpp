@@ -138,12 +138,12 @@ void buzz(int value)
 
 void servofunc(int angle)
 {
-  for(angle > 180) 
+  if(angle > 180) 
   { 
     angle = 180;
     servo.write(angle); 
   } 
-  for(angle < 0) 
+  if(angle < 0) 
   { 
     angle = 0 ;
     servo.write(angle);   }
