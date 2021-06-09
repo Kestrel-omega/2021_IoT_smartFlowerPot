@@ -21,7 +21,7 @@ void buzz(int value);
 //turn on when true, turn off when false
 void servofunc(int angle);
 //servo motor contol as angle
-
+void getloadcell();
 
 
 #endif
