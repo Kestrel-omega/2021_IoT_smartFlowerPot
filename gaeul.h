@@ -13,17 +13,9 @@
 
 void settingGaeul();
 //setting
-void wifiset();
-//setting wifi
-void webhtml();
-//html
 
-void fnRoot(void);
-void fnStatus(void);
-void fnNotFound();
-void fnOn();
-void fnOff();
-void fnInput();
+
+
 
 void buzz(int value);
 //turn on when true, turn off when false
