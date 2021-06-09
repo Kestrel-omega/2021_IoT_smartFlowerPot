@@ -8,7 +8,6 @@
 #include <Servo.h> 
 
 
-
 #define servoPin 9 //servo Pin
 #define buzzerPin 12//buzz
 
