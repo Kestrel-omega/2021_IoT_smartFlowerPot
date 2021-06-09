@@ -5,6 +5,9 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 #include <ESP8266WebServer.h>
+#include "AnotherIFTTTWebhook.h"
+#define key "dp2pmH8w5fDxygupiFknDhX92YotQgbicf5jvKp9CIs"
+
 ESP8266WebServer myHttpServer(80);
 int conditionHumid = 50;
 int conditionWeight = 50;
@@ -26,7 +29,7 @@ void loop()
   int humid;
   float temp1;
   float humid1;
-  int weight;
+  int weight=70;
   //getHumid();//-----------2. humid and temp 받아오기
   //readDHT11(&temp, &humid);
   //getWeather(&temp1, &humid1);
@@ -44,7 +47,10 @@ void loop()
   getloadcell();//아직 안짬 :  무게 받아오기
   if(weight<conditionWeight)//--------------------설정한 무게보다 낮으면
   {
-    //ifttt로 물통 채우라는 알람보내기
+    //ifttt로 물통 채우라는 알람보내기 ( 알람 너무 많이 옴 이거 해결하기)
+    char wei[20];
+    snprintf(wei,sizeof(wei),"%d",weight);
+    send_webhook("smartFlowerPot",key,wei,"","");
   }
 
   
