@@ -26,6 +26,7 @@
 void sensorSetup();
 // LED On
 void ledOn();
+void ledOff();
 // get humidity_of_soil data from SZH-SSBH-074
 float getHumid();
 // using DHT11 sensor with polling method
