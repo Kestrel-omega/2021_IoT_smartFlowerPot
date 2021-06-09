@@ -14,7 +14,7 @@ void sensorSetup()
   pinMode(DHT11PIN, INPUT);
   // LCD Setting
   lcd.begin(16,2);
-  //Serial.begin(115200);
+  Serial.begin(115200);
  
 }
 
