@@ -5,8 +5,12 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 #include <ESP8266WebServer.h>
+#include <PubSubClient.h>
 #include "AnotherIFTTTWebhook.h"
 #define key "dp2pmH8w5fDxygupiFknDhX92YotQgbicf5jvKp9CIs"
+
+WiFiClient TCPClient;
+PubSubClient MQTTClient;
 
 ESP8266WebServer myHttpServer(80);
 int conditionHumid = 50;
@@ -15,28 +19,39 @@ void wifiset();
 void setup()
 {
   settingGaeul();
+  sensorSetup();
   wifiset();
   webhtml();
-  sensorSetup();
   ledOn();//-------------1.LED ON
+  MQTTClient.setClient(TCPClient);
+  MQTTClient.setServer("mqtt.thingspeak.com",1883);
+  MQTTClient.connect("smartflowerpot");
 }
 int angle=0;
 
 void loop()
 {
   myHttpServer.handleClient();
-  int temp;
-  int humid;
+  int temp=1;
+  int humid=2;
   float temp1;
   float humid1;
   int weight=70;
   //getHumid();//-----------2. humid and temp 받아오기
   //readDHT11(&temp, &humid);
   //getWeather(&temp1, &humid1);
+  Serial.println("온/습도 받아옴");
+  MQTTClient.loop();
+  thingspeakpub(1,temp);
+  MQTTClient.loop();
+  thingspeakpub(2,humid);// 앞에는 field 번호 뒤에는 값 thingspeak가 15초가 최소간격이라 타이밍 문제 있음 
+  Serial.println("thingspeak publish");
   //displayLCD(temp, humid);//------------lcd 출력
+  Serial.println("lcd 출력완료");
   myHttpServer.handleClient();
   if(humid<conditionHumid)//--------------------설정한 습도값보다 낮으면
   {
+    Serial.println("humid<conditionHumid");
     Serial.println("습도 낮음");//체크
     buzz(true);
     servofunc(30);
@@ -48,12 +63,12 @@ void loop()
   if(weight<conditionWeight)//--------------------설정한 무게보다 낮으면
   {
     //ifttt로 물통 채우라는 알람보내기 ( 알람 너무 많이 옴 이거 해결하기)
+    Serial.println("weight<conditionWeight ifttt알람보냄");
     char wei[20];
     snprintf(wei,sizeof(wei),"%d",weight);
     send_webhook("smartFlowerPot",key,wei,"","");
   }
 
-  
 }
 
 void wifiset()
@@ -67,8 +82,7 @@ void wifiset()
       Serial.println(".");
       delay(500);
   }
-  Serial.printf("connected!\n");
-  Serial.printf("please contact IP addr...");
+  
   Serial.println(WiFi.localIP());
 }
 
@@ -143,4 +157,11 @@ void fnInput()
     
   }
   else myHttpServer.send(200,"text/plain","Somthing wrong");
+}
+void thingspeakpub(int num,int value)
+{
+  char buff[5], pub[1000];
+  snprintf(buff,sizeof(buff),"%d",value);
+  snprintf(pub,sizeof(pub),"channels/1393641/publish/fields/field%d/0NX20M0E910B87BB",num);
+  MQTTClient.publish(pub,buff);
 }
