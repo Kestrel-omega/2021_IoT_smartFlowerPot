@@ -11,7 +11,6 @@
 #define buzzerPin 12//buzz
 
 
-
 void settingGaeul();
 //setting
 void wifiset();
