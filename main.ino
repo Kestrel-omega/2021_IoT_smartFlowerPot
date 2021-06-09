@@ -1,27 +1,28 @@
+#include <gaeul.h>
+#include <jiho.h>
 #include "Arduino.h"
-#include "gaeul.h"
-#include "jiho.h"
+//ESP8266WebServer myHttpServer(80);
 
 void setup()
 {
   settingGaeul();
   wifiset();
-  webthml();
+  webhtml();
   sensorSetup();
   ledOn();
 }
-
-int angle;
+int angle=0;
 
 void loop()
 {
-  float temp;
-  float humid;
-  
+  //myHttpServer.handleClient();
+  int temp;
+  int humid;
+  float temp1;
+  float humid1;
   getHumid();
-  readDHT11();
-  getWeather(temp, humid);
+  readDHT11(&temp, &humid);
+  getWeather(&temp1, &humid1);
   servofunc(angle);
-  getloadcell();
   displayLCD(temp, humid);
 }
