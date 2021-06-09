@@ -57,5 +57,8 @@ void servofunc(int angle)
     servo.write(angle);   
   }
 }
+void getloadcell()
+{
+}
 
 
