@@ -6,16 +6,12 @@
 #include <ESP8266HTTPClient.h>
 #include <ESP8266WebServer.h>
 #include <Servo.h> 
-#include <HX711.h>
 
 
-#define calibration_factor -7050.0 
-#define DOUT  3 //data Pin
-#define CLK  2 // clk Pin
+
 #define servoPin 9 //servo Pin
 #define buzzerPin 12//buzz
 
-HX711 scale(DOUT, CLK);
 Servo servo; 
 ESP8266WebServer myHttpServer(80);//have to call "myHttpServer.handleClient();" as many as possible in loop()
 
@@ -146,13 +142,8 @@ void servofunc(int angle)
   if(angle < 0) 
   { 
     angle = 0 ;
-    servo.write(angle);   }
+    servo.write(angle);   
   }
 }
-float getloadcell()
-{
-  float weight = scale.get_units();
-  Serial.println(weight); //scale.get_units() returns a float
-  return weight;
-}
+
 
