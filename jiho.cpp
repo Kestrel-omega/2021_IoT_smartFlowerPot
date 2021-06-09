@@ -2,8 +2,10 @@
 
 #include <Adafruit_NeoPixel.h>
 #include <Arduino.h>
-
+HTTPClient myClient;
+LiquidCrystal lcd(RS, RW, DB4, DB5, DB6, DB7);
 // ESP8266 and sensors initialize
+DynamicJsonDocument doc(2048);
 void sensorSetup()
 {
   // LED Setting
@@ -11,7 +13,7 @@ void sensorSetup()
   // SZH-SSBH-074 Setting
   pinMode(DHT11PIN, INPUT);
   // LCD Setting
-  LiquidCrystal lcd(RS, RW, DB4, DB5, DB6, DB7);
+  
   lcd.begin(16,2);
   Serial.begin(115200);
   delay(100);
@@ -129,5 +131,5 @@ void getWeather(float *temp, float *humid)
     float temp = (float)(doc["main"]["temp"]) - 273.0; // 기온
     float humid = (float)doc["main"]["humidity"]; // 습도
     delay(5000);
-  }
+}
 }
