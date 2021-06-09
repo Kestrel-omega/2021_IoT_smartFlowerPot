@@ -18,9 +18,9 @@
 #define DB7 1 //TX
 #define LED 10 //SD3
 #define DHT11PIN 16 //D01
+#define sensorPin 99////////////////////수정필요
+//HTTPClient MyClient;
 
-HTTPClient myClient;
-DynamicJsonDocument doc(2048);
 
 // ESP8266 and sensors initialize
 void sensorSetup();
