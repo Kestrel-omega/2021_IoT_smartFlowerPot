@@ -13,18 +13,9 @@ void sensorSetup()
   // SZH-SSBH-074 Setting
   pinMode(DHT11PIN, INPUT);
   // LCD Setting
-  
   lcd.begin(16,2);
-  Serial.begin(115200);
-  delay(100);
-  WiFi.begin("KT_Giga_Wifi", "");
-  while(1)
-  {
-    if(WiFi.status() == WL_CONNECTED) break;
-    else delay(100);
-  }
-  Serial.printf("WiFi Connected!\r\n");
-  
+  //Serial.begin(115200);
+ 
 }
 
 // LED brightness
@@ -38,6 +29,18 @@ void ledOn()
 
   for(int i=0; i<strip.numPixels(); i++) 
       strip.setPixelColor(i, strip.Color(255, 0, 255));
+  strip.show();
+}
+void ledOff()
+{
+  int PIN = 5;
+  Adafruit_NeoPixel strip = Adafruit_NeoPixel(16, PIN, NEO_GRB + NEO_KHZ800);
+  
+  strip.begin();
+  strip.show(); 
+
+  for(int i=0; i<strip.numPixels(); i++) 
+      strip.setPixelColor(i, strip.Color(0, 0, 0));
   strip.show();
 }
 
