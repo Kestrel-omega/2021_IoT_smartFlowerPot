@@ -3,6 +3,7 @@
 #include <Adafruit_NeoPixel.h>
 #include <Arduino.h>
 HTTPClient myClient;
+const int soilSensorPin = A0;
 LiquidCrystal lcd(RS, RW, DB4, DB5, DB6, DB7);
 // ESP8266 and sensors initialize
 DynamicJsonDocument doc(2048);
@@ -17,7 +18,6 @@ void sensorSetup()
   Serial.begin(115200);
  
 }
-
 // LED brightness
 void ledOn()
 {
@@ -45,9 +45,9 @@ void ledOff()
 }
 
 // get humidity_of_soil data from SZH-SSBH-074
-float getHumid()
+int getHumid()
 {
-  float humid = (1023-analogRead(sensorPin));
+  int humid = (100-((float)analogRead(soilSensorPin)/1024*100));
   return humid;
 }
 
