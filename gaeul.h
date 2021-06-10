@@ -7,8 +7,8 @@
 #include <ESP8266HTTPClient.h>
 #include <Servo.h> 
 
-#define servoPin 9 //servo Pin
-#define buzzerPin 12//buzz
+#define servoPin 12 //servo Pin
+#define buzzerPin 13//buzz
 
 
 void settingGaeul();
