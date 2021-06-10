@@ -104,21 +104,3 @@ int readDHT11(int *readTemp, int* readHumid)
   //  Serial.printf("cnt:%d, dt[%d, %d]\r\n",cnt,dt[cnt*2],dt[cnt*2+1]);
   return 1;
 }
-
-// get current weather data from Openweather API
-void getWeather(float *temp, float *humid)
-{
-  myClient.begin("http://api.openweathermap.org/data/2.5/weather?q=youngin&appid=95a4855b2d6b5d5228cc00bf3ed6c3e5");
-  int getResult = myClient.GET();
-  if(getResult == HTTP_CODE_OK) // 200
-  {
-    String receivedData = myClient.getString();
-    deserializeJson(doc, receivedData); // 해석 완료
-    const char* city = doc["name"]; // 도시 이름
-    float temp = (float)(doc["main"]["temp"]) - 273.0; // 기온
-    float humid = (float)doc["main"]["humidity"]; // 습도
-    Serial.printf("%s의 현재 온도는 %f°C, 습도는 %f%%입니다.\r\n",city, temp, humid);
-  }
-  else Serial.printf("Error, code: %d\r\n", getResult);
-  delay(1000);
-}
