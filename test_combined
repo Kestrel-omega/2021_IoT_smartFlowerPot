@@ -28,7 +28,7 @@
 // Declare Object
 WiFiClient TCPClient;
 PubSubClient MQTTClient;
-HTTPClient MyHTTPClient;
+HTTPClient myHTTPClient;
 ESP8266WebServer HttpServer(80);
 DynamicJsonDocument doc(2048);
 Servo servo;
@@ -91,7 +91,7 @@ void setup()
 
 void loop()
 {
-  myHttpServer.handleClient();
+  HttpServer.handleClient();
   getHumid();
   readDHT11(&temp, &humid);
   getWeather(&temp1, &humid1);
@@ -100,7 +100,7 @@ void loop()
   thingspeakpub(2,humid);
   Serial.println("thingspeak publish");
   Serial.println("lcd 출력완료");
-  myHttpServer.handleClient();
+  HttpServer.handleClient();
   if(humid<conditionHumid)//--------------------설정한 습도값보다 낮으면
   {
     Serial.println("humid<conditionHumid");
@@ -110,7 +110,7 @@ void loop()
     delay(2000);
     servofunc(0);
   }
-  myHttpServer.handleClient();
+  HttpServer.handleClient();
   getloadcell();//아직 안짬 :  무게 받아오기
   if(weight<conditionWeight)//--------------------설정한 무게보다 낮으면
   {
@@ -276,73 +276,73 @@ float getloadcell()
 
 void webhtml()
 {
-  myHttpServer.on("/", fnRoot );
-  myHttpServer.on("/status", fnStatus );
-  myHttpServer.on("/on", fnOn );
-  myHttpServer.on("/off", fnOff );
-  myHttpServer.on("/input", fnInput );
-  myHttpServer.onNotFound(fnNotFound);
-  myHttpServer.begin();
+  HttpServer.on("/", fnRoot );
+  HttpServer.on("/status", fnStatus );
+  HttpServer.on("/on", fnOn );
+  HttpServer.on("/off", fnOff );
+  HttpServer.on("/input", fnInput );
+  HttpServer.onNotFound(fnNotFound);
+  HttpServer.begin();
 }
 
 void fnRoot(void)//callback function
 {
   char buff[2000];//html buff
   strcpy(buff, "<html>\r\n2021_IoT_smartFlowerPot<br>\r\n<a href=/status>Check Status</a><br>\r\n<a href=/on>LED On</a><br>\r\n<a href=/off>LED Off</a><br>\r\n<form method=\"get\" action=\"input\">Condition maintain humid <input type =\"text\" name=\"Humid\"><input type=\"submit\" ></form>\r\n<form method=\"get\" action=\"input\">Condition maintain weight <input type =\"text\" name=\"Weight\"><input type=\"submit\" ></form>\r\n</html>");
-  myHttpServer.send(200, "text/html", buff); //text type html send
+  HttpServer.send(200, "text/html", buff); //text type html send
 }
 void fnStatus(void)
 {
   char buff[2000];//html buff
   sprintf(buff, "<html>\r\n temp condition : %d<br>\r\n\r\n weight condition : %d<br>\r\n</html>", conditionHumid, conditionWeight);
-  myHttpServer.send(200, "text/html", buff);
+  HttpServer.send(200, "text/html", buff);
 }
 void fnNotFound()
 {
-  myHttpServer.send(404, "text/plain", "Wrong");
+  HttpServer.send(404, "text/plain", "Wrong");
 }
 void fnOn()
 {
   ledOn();
-  myHttpServer.send(200, "text/html", "led on");
+  HttpServer.send(200, "text/html", "led on");
 }
 void fnOff()
 {
   ledOff();
-  myHttpServer.send(200, "text/html", "led off");
+  HttpServer.send(200, "text/html", "led off");
 }
 void fnInput()
 {
   char co_Humid[400];
   char co_Weight[400];
 
-  if (myHttpServer.hasArg("Humid"))
+  if (HttpServer.hasArg("Humid"))
   {
     strcpy(co_Humid, "<meta charset=utf-8>");
     strcat(co_Humid, "습도 조건 변경 (0~100) : ");
-    strcat(co_Humid, myHttpServer.arg("Humid").c_str());
-    conditionHumid = atoi(myHttpServer.arg("Humid").c_str());
+    strcat(co_Humid, HttpServer.arg("Humid").c_str());
+    conditionHumid = atoi(HttpServer.arg("Humid").c_str());
 
     if (conditionHumid >= 100) conditionHumid = 100;
     else if (conditionHumid < 0) conditionHumid = 0;
 
-    myHttpServer.send(200, "text/html", co_Humid);
+    HttpServer.send(200, "text/html", co_Humid);
 
   }
-  if (myHttpServer.hasArg("Weight"))
+  if (HttpServer.hasArg("Weight"))
   {
     strcpy(co_Weight, "<meta charset=utf-8>");
     strcat(co_Weight, "무게 조건 변경 (0~100) : ");
-    strcat(co_Weight, myHttpServer.arg("Weight").c_str());
-    conditionWeight = atoi(myHttpServer.arg("Weight").c_str());
+    strcat(co_Weight, HttpServer.arg("Weight").c_str());
+    conditionWeight = atoi(HttpServer.arg("Weight").c_str());
 
     if (conditionWeight >= 100) conditionWeight = 100;
     else if (conditionWeight < 0) conditionWeight = 0;
 
-    myHttpServer.send(200, "text/html", co_Weight);
+    HttpServer.send(200, "text/html", co_Weight);
 
   }
-  else myHttpServer.send(200, "text/plain", "Somthing wrong");
+  else HttpServer.send(200, "text/plain", "Somthing wrong");
 }
 void thingspeakpub(int num, int value)
 {
