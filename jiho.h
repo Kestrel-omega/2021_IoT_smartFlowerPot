@@ -26,7 +26,5 @@ int getHumid();
 int readDHT11(int *readTemp, int* readHumid);
 // export data to LCD
 void displayLCD(float temp, float humid);
-// get current weather data from Openweather API
-void getWeather(float *temp, float *humid);
 
 #endif
