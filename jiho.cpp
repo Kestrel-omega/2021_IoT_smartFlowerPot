@@ -4,7 +4,6 @@
 #include <Arduino.h>
 HTTPClient myClient;
 const int soilSensorPin = A0;
-LiquidCrystal lcd(RS, RW, DB4, DB5, DB6, DB7);
 // ESP8266 and sensors initialize
 DynamicJsonDocument doc(2048);
 void sensorSetup()
@@ -13,8 +12,6 @@ void sensorSetup()
   pinMode(LED, OUTPUT);
   // SZH-SSBH-074 Setting
   pinMode(DHT11PIN, INPUT);
-  // LCD Setting
-  lcd.begin(16,2);
   Serial.begin(115200);
  
 }
@@ -49,17 +46,6 @@ int getHumid()
 {
   int humid = (100-((float)analogRead(soilSensorPin)/1024*100));
   return humid;
-}
-
-// export data to LCD
-void displayLCD(float temp, float humid)
-{
-  char str1[16] = {0,};
-  char str2[16] = {0,};
-  lcd.setCursor(0,0);
-  sprintf(str1,"Temp : %f °C", temp);
-  lcd.setCursor(0,1);
-  sprintf(str2,"Humid : %f %%", humid);
 }
 
 int readDHT11(int *readTemp, int* readHumid)
@@ -134,5 +120,5 @@ void getWeather(float *temp, float *humid)
     float temp = (float)(doc["main"]["temp"]) - 273.0; // 기온
     float humid = (float)doc["main"]["humidity"]; // 습도
     delay(5000);
-}
+  }
 }
