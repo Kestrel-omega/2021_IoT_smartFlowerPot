@@ -22,10 +22,10 @@ void setup()
   sensorSetup();
   wifiset();
   webhtml();
-  ledOn();//-------------1.LED ON
-  MQTTClient.setClient(TCPClient);
-  MQTTClient.setServer("mqtt.thingspeak.com",1883);
-  MQTTClient.connect("smartflowerpot");
+  //ledOn();//-------------1.LED ON
+  //MQTTClient.setClient(TCPClient);
+  //MQTTClient.setServer("mqtt.thingspeak.com",1883);
+  //MQTTClient.connect("smartflowerpot");
 }
 int angle=0;
 
@@ -37,7 +37,7 @@ void loop()
   float temp1;
   float humid1;
   int weight=70;
-  //getHumid();//-----------2. humid and temp 받아오기
+  Serial.println(getHumid());//-----------2. humid and temp 받아오기
   //readDHT11(&temp, &humid);
   //getWeather(&temp1, &humid1);
   Serial.println("온/습도 받아옴");
@@ -59,7 +59,7 @@ void loop()
     servofunc(0);
   }
   myHttpServer.handleClient();
-  getloadcell();//아직 안짬 :  무게 받아오기
+  Serial.println(getloadcell(),2);//아직 안짬 :  무게 받아오기
   if(weight<conditionWeight)//--------------------설정한 무게보다 낮으면
   {
     //ifttt로 물통 채우라는 알람보내기 ( 알람 너무 많이 옴 이거 해결하기)
