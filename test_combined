@@ -26,7 +26,7 @@
 // Declare Object 
 WiFiClient TCPClient;
 PubSubClient MQTTClient;
-ESP8266WebServer myHttpServer(80);
+ESP8266WebServer HttpServer(80);
 Servo servo; 
 HX711 scale;
 
