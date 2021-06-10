@@ -10,8 +10,8 @@
  
 #define LOADCELL_DOUT_PIN 4
 #define LOADCELL_SCK_PIN 5
-#define servoPin 9 //servo Pin
-#define buzzerPin 12//buzz
+#define servoPin 12 //servo Pin
+#define buzzerPin 13//buzz
 float calibration_factor = -100000;
 
 Servo servo; 
