@@ -36,14 +36,48 @@ float calibration_factor = -100000;
 // Declare Functions
 void ledOn();
 void ledOff();
+int getHumid();
 int readDHT11(int *readTemp, int* readHumid);
 
 void setup()
 {
+  pinMode(LED, OUTPUT);
+  pinMode(DHT11PIN, INPUT);
+  Serial.begin(115200);
 }
 
 void loop()
 {
+}
+
+void ledOn()
+{
+  Adafruit_NeoPixel strip = Adafruit_NeoPixel(16, LED, NEO_GRB + NEO_KHZ800);
+  
+  strip.begin();
+  strip.show(); 
+
+  for(int i=0; i<strip.numPixels(); i++) 
+      strip.setPixelColor(i, strip.Color(255, 0, 255));
+  strip.show();
+}
+
+void ledOff()
+{
+  Adafruit_NeoPixel strip = Adafruit_NeoPixel(16, LED, NEO_GRB + NEO_KHZ800);
+  
+  strip.begin();
+  strip.show(); 
+
+  for(int i=0; i<strip.numPixels(); i++) 
+      strip.setPixelColor(i, strip.Color(0, 0, 0));
+  strip.show();
+}
+
+int getHumid()
+{
+  int humid = (100-((float)analogRead(SOIL)/1024*100));
+  return humid;
 }
 
 int readDHT11(int *readTemp, int* readHumid)
