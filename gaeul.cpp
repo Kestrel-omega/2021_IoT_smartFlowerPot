@@ -6,21 +6,25 @@
 #include <ESP8266HTTPClient.h>
 #include <ESP8266WebServer.h>
 #include <Servo.h> 
-
-
+#include "HX711.h" 
+ 
+#define LOADCELL_DOUT_PIN 4
+#define LOADCELL_SCK_PIN 5
 #define servoPin 9 //servo Pin
 #define buzzerPin 12//buzz
+float calibration_factor = -100000;
 
 Servo servo; 
-
+HX711 scale;
 
 void settingGaeul()
 {
   pinMode(buzzerPin,OUTPUT); //buzzer
   Serial.begin(115200);
-  
-  //scale.set_scale(calibration_factor); 
-  //scale.tare();  //set init value as 0
+  scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
+  scale.set_scale();
+  scale.tare();
+  long zero_factor = scale.read_average(); 
   //servo.attach(servoPin); 
 }
 
@@ -57,8 +61,10 @@ void servofunc(int angle)
     servo.write(angle);   
   }
 }
-void getloadcell()
+float getloadcell()
 {
+	scale.set_scale(calibration_factor);
+	return scale.get_units();
 }
 
 
