@@ -33,14 +33,26 @@ int angle=0;
 void loop()
 {
   myHttpServer.handleClient();
-  int temp=1;
-  int humid=2;
+  //int temp=1;
+  //int humid=2;
   float temp1;
   float humid1;
   soilhumid=getHumid();
   Serial.printf("현재 흙 습도 : %d\n\r\n",soilhumid);//-----------2. humid and temp 받아오기
   //readDHT11(&temp, &humid);
-  //getWeather(&temp1, &humid1);
+  myClient.begin("http://api.openweathermap.org/data/2.5/weather?q=youngin&appid=95a4855b2d6b5d5228cc00bf3ed6c3e5");
+  int getResult = myClient.GET();
+  if(getResult == HTTP_CODE_OK) // 200
+  {
+    String receivedData = myClient.getString();
+    deserializeJson(doc, receivedData); // 해석 완료
+    const char* city = doc["name"]; // 도시 이름
+    float temp = (float)(doc["main"]["temp"]) - 273.0; // 기온
+    float humid = (float)doc["main"]["humidity"]; // 습도
+    //Serial.printf("%s의 현재 온도는 %f°C, 습도는 %f%%입니다.\r\n",city, temp, humid);
+  }
+  else Serial.printf("Error, code: %d\r\n", getResult);
+  delay(1000);
   //Serial.printf("용인의 온도 : %f 습도 : %f\n", temp1,humid1);
   MQTTClient.loop();
   //thingspeakpub(1,temp);
