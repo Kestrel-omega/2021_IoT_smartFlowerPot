@@ -1,4 +1,4 @@
-// 모든 것을 쓰까봤습니다.
+// 모든 헤더를 통합했습니다.
 
 // Include Headers
 #include <Wire.h>
@@ -14,8 +14,8 @@
 
 // Define Constants
 #define key "dp2pmH8w5fDxygupiFknDhX92YotQgbicf5jvKp9CIs"
-#define ID "MJU_Wireless"
-#define PW ""
+#define ID "irslab"
+#define PW "" // 
 
 #define LED 0     //D3
 #define DHT11 2   //D4
@@ -39,19 +39,19 @@ float calibration_factor = -100000;
 int conditionHumid = 0;
 int conditionWeight = 0;
 int angle = 0;
-int temp = 0;
-int humid = 0;
-float temp1 = 0;
-float humid1 = 0;
-int weight = 0;
+int DHT_temp = 0;
+int DHT_humid = 0;
+float soil_humid = 0;
+float atmos_temp = 0;
+float atmos_humid = 0;
+float weight = 0;
 
 // Declare Functions
 void ledOn();
 void ledOff();
-int getHumid();
-int readDHT11(int *readTemp, int* readHumid);
-void getWeather(float *temp, float *humid);
-void wifiset();
+float getHumid();
+int readDHT11(int *temp, int* humid);
+void getWeather();
 void buzz(int value);
 void servofunc(int angle);
 void thingspeakpub(int num, int value);
@@ -66,61 +66,98 @@ void fnInput();
 
 void setup()
 {
-  pinMode(LED, OUTPUT);
-  pinMode(DHT11, INPUT);
-  pinMode(BUZZ, OUTPUT);
-
-  scale.begin(L_DATA, L_CLK);
-  scale.set_scale();
-  scale.tare();
-  long zero_factor = scale.read_average();
-
-  servo.attach(SERVO);
-
   Serial.begin(115200);
   delay(500);
 
-  wifiset();
+  pinMode(LED, OUTPUT);
+  pinMode(DHT11, INPUT);
+  pinMode(BUZZ, OUTPUT);
+  Serial.println("pinMode Setting Done!");
+
+  
+    scale.begin(L_DATA, L_CLK);
+    scale.set_scale();
+    scale.tare();
+    long zero_factor = scale.read_average();
+  
+  servo.attach(SERVO);
+
+  Serial.println("Setup Done!");
+
+  Serial.println("wifi setting start");
+  WiFi.begin(ID, PW);
+  while (1)
+  {
+    if (WiFi.status() == WL_CONNECTED)
+      break;
+    Serial.println(".");
+    delay(500);
+  }
+  Serial.println(WiFi.localIP());
+
   webhtml();
   ledOn();
 
   MQTTClient.setClient(TCPClient);
-  MQTTClient.setServer("mqtt.thingspeak.com",1883);
+  MQTTClient.setServer("mqtt.thingspeak.com", 1883);
   MQTTClient.connect("smartflowerpot");
 }
 
+unsigned long long prevMillis = 0;
+int count = 0;
+
 void loop()
 {
-  HttpServer.handleClient();
-  getHumid();
-  readDHT11(&temp, &humid);
-  getWeather(&temp1, &humid1);
-  Serial.println("온/습도 받아옴");
-  thingspeakpub(1,temp);
-  thingspeakpub(2,humid);
-  Serial.println("thingspeak publish");
-  Serial.println("lcd 출력완료");
-  HttpServer.handleClient();
-  if(humid<conditionHumid)//--------------------설정한 습도값보다 낮으면
+  if (millis() - prevMillis > 1000)
   {
-    Serial.println("humid<conditionHumid");
-    Serial.println("습도 낮음");//체크
-    buzz(true);
-    servofunc(30);
-    delay(2000);
-    servofunc(0);
+    prevMillis = millis();
+    millis();
+    HttpServer.handleClient();
+    delay(500);
+    soil_humid = getHumid();
+    delay(500);
+    readDHT11(&DHT_temp, &DHT_humid);
+    delay(500);
+    getWeather();
+    
+    Serial.printf("readDHT - Temp : %d, Humid %d\r\n", DHT_temp, DHT_humid);
+    Serial.printf("Atmosphere - Temp : %f, Humid %f\r\n", atmos_temp, atmos_humid);
+    Serial.printf("Soil - Humid : %f\r\n", soil_humid);
+    
+    HttpServer.handleClient();
+    if (soil_humid < conditionHumid) //--------------------흙의 습도가 설정한 습도값보다 낮으면
+    {
+      Serial.println("humid < conditionHumid");
+      Serial.println("습도 낮음");//체크
+      buzz(true);
+      servofunc(30);
+      delay(2000);
+      servofunc(0);
+    }
+    HttpServer.handleClient();
+     getloadcell();
+    if (weight < conditionWeight) //--------------------설정한 무게보다 낮으면
+    {
+      //ifttt로 물통 채우라는 알람보내기 ( 알람 너무 많이 옴 이거 해결하기)
+      Serial.println("weigh t< conditionWeight ifttt 알람 보냄");
+      char wei[20];
+      snprintf(wei, sizeof(wei), "%d", weight);
+      send_webhook("smartFlowerPot", key, wei, "", "");
+    }
+    count++;
+    if(count == 10)
+    {
+      thingspeakpub(1, DHT_temp);
+      Serial.println("thingspeak publish");
+    }
+      
+    if(count == 20)
+      {
+        thingspeakpub(2, soil_humid);
+        Serial.println("thingspeak publish");
+        count = 0;
+      }
   }
-  HttpServer.handleClient();
-  getloadcell();//아직 안짬 :  무게 받아오기
-  if(weight<conditionWeight)//--------------------설정한 무게보다 낮으면
-  {
-    //ifttt로 물통 채우라는 알람보내기 ( 알람 너무 많이 옴 이거 해결하기)
-    Serial.println("weight<conditionWeight ifttt알람보냄");
-    char wei[20];
-    snprintf(wei,sizeof(wei),"%d",weight);
-    send_webhook("smartFlowerPot",key,wei,"","");
-  }
-
   MQTTClient.loop();
 }
 
@@ -148,9 +185,9 @@ void ledOff()
   strip.show();
 }
 
-int getHumid()
+float getHumid()
 {
-  int humid = (100 - ((float)analogRead(SOIL) / 1024 * 100));
+  float humid = (100 - ((float)analogRead(SOIL) / 1024 * 100));
   return humid;
 }
 
@@ -189,7 +226,7 @@ int readDHT11(int *readTemp, int* readHumid)
   //Phase 4
   *readHumid = 0;
   *readTemp = 0;
-  for (cnt = 2; cnt < 11; cnt++) //Humid
+  for (cnt = 2; cnt < 10; cnt++) //Humid
   {
     *readHumid = *readHumid << 1;
     if (dt[cnt * 2 + 1] > 49)
@@ -198,7 +235,7 @@ int readDHT11(int *readTemp, int* readHumid)
       *readHumid = *readHumid + 0;
 
   }
-  for (cnt = 18; cnt < 26; cnt++) //Temp
+  for (cnt = 17; cnt < 25; cnt++) //Temp
   {
     *readTemp = *readTemp << 1;
     if (dt[cnt * 2 + 1] > 49)
@@ -211,33 +248,22 @@ int readDHT11(int *readTemp, int* readHumid)
   return 1;
 }
 
-void getWeather(float *temp, float *humid)
+void getWeather()
 {
-  myHTTPClient.begin("http://api.openweathermap.org/data/2.5/weather?q=seongnam&appid=95a4855b2d6b5d5228cc00bf3ed6c3e5");
-  int getResult = myHTTPClient.GET();
-  if (getResult == HTTP_CODE_OK) // 200
+  myHTTPClient.begin("http://api.openweathermap.org/data/2.5/weather?q=yongin&appid=710a19c0a43aa3674ef3fa64c6a824ff");
+  if(myHTTPClient.GET()==HTTP_CODE_OK)
   {
-    String receivedData = myHTTPClient.getString();
-    Serial.printf("%s\r\n\r\nEND\r\n\r\n", receivedData.c_str());
-    deserializeJson(doc, receivedData); // 해석 완료
-    float temp = (float)(doc["main"]["temp"]) - 273.0; // 기온
-    float humid = (float)doc["main"]["humidity"]; // 습도
-    delay(5000);
+    //Serial.printf("HTTP Start........................\r\n");
+    delay(1000);
+    String data=myHTTPClient.getString();
+    //Serial.printf("%s",data.c_str());
+    deserializeJson(doc,data);
+    atmos_temp = (float)(doc["main"]["temp"]) - 273.0; // 기온
+    atmos_humid = (float)doc["main"]["humidity"]; // 습도
   }
-}
-
-void wifiset()
-{
-  Serial.println("wifi setting start");
-  WiFi.begin(ID, PW);
-  while (1)
-  {
-    if (WiFi.status() == WL_CONNECTED)
-      break;
-    Serial.println(".");
-    delay(500);
-  }
-  Serial.println(WiFi.localIP());
+  else Serial.printf("Server something wrong!\n\r");
+  //Serial.printf("\r\n\r\nThis is END....\r\n\r\n");
+  myHTTPClient.end();
 }
 
 void buzz(int value)
@@ -348,6 +374,7 @@ void thingspeakpub(int num, int value)
 {
   char buff[5], pub[1000];
   snprintf(buff, sizeof(buff), "%d", value);
-  snprintf(pub, sizeof(pub), "channels/1393641/publish/fields/field%d/0NX20M0E910B87BB", num);
+  //snprintf(pub, sizeof(pub), "channels/1393641/publish/fields/field%d/0NX20M0E910B87BB", num);
+  snprintf(pub, sizeof(pub), "channels/1413355/publish/fields/field%d/IOGTH6XE5SQF54AH", num);
   MQTTClient.publish(pub, buff);
 }
