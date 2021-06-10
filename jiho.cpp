@@ -18,7 +18,7 @@ void sensorSetup()
 // LED brightness
 void ledOn()
 {
-  int PIN = 5;
+  int PIN = LED;
   Adafruit_NeoPixel strip = Adafruit_NeoPixel(16, PIN, NEO_GRB + NEO_KHZ800);
   
   strip.begin();
@@ -30,7 +30,7 @@ void ledOn()
 }
 void ledOff()
 {
-  int PIN = 5;
+  int PIN = LED;
   Adafruit_NeoPixel strip = Adafruit_NeoPixel(16, PIN, NEO_GRB + NEO_KHZ800);
   
   strip.begin();
