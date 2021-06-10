@@ -8,21 +8,22 @@
 #include <PubSubClient.h>
 #include "AnotherIFTTTWebhook.h"
 #define key "dp2pmH8w5fDxygupiFknDhX92YotQgbicf5jvKp9CIs"
-
+int soilhumid=0;
+float weight=0;
 WiFiClient TCPClient;
 PubSubClient MQTTClient;
 
 ESP8266WebServer myHttpServer(80);
-int conditionHumid = 50;
-int conditionWeight = 50;
+int conditionHumid = 0;
+int conditionWeight = 0;
 void wifiset();
 void setup()
 {
+  ledOn();//-------------1.LED ON
   settingGaeul();
   sensorSetup();
   wifiset();
   webhtml();
-  //ledOn();//-------------1.LED ON
   //MQTTClient.setClient(TCPClient);
   //MQTTClient.setServer("mqtt.thingspeak.com",1883);
   //MQTTClient.connect("smartflowerpot");
@@ -36,39 +37,38 @@ void loop()
   int humid=2;
   float temp1;
   float humid1;
-  int weight=70;
-  Serial.println(getHumid());//-----------2. humid and temp 받아오기
+  soilhumid=getHumid();
+  Serial.printf("현재 흙 습도 : %d\n\r\n",soilhumid);//-----------2. humid and temp 받아오기
   //readDHT11(&temp, &humid);
   //getWeather(&temp1, &humid1);
-  Serial.println("온/습도 받아옴");
+  //Serial.printf("용인의 온도 : %f 습도 : %f\n", temp1,humid1);
   MQTTClient.loop();
-  thingspeakpub(1,temp);
-  MQTTClient.loop();
-  thingspeakpub(2,humid);// 앞에는 field 번호 뒤에는 값 thingspeak가 15초가 최소간격이라 타이밍 문제 있음 
-  Serial.println("thingspeak publish");
-  //displayLCD(temp, humid);//------------lcd 출력
-  Serial.println("lcd 출력완료");
+  //thingspeakpub(1,temp);
+  //MQTTClient.loop();
+  //thingspeakpub(2,soilhumid);// 앞에는 field 번호 뒤에는 값 thingspeak가 15초가 최소간격이라 타이밍 문제 있음 
+  //Serial.println("thingspeak publish");
   myHttpServer.handleClient();
   if(humid<conditionHumid)//--------------------설정한 습도값보다 낮으면
   {
     Serial.println("humid<conditionHumid");
-    Serial.println("습도 낮음");//체크
     buzz(true);
     servofunc(30);
     delay(2000);
     servofunc(0);
   }
+  else buzz(0);
   myHttpServer.handleClient();
-  Serial.println(getloadcell(),2);//아직 안짬 :  무게 받아오기
+  weight=getloadcell()+1;
+  Serial.printf("물통 무게! : %f\n",weight);//아직 안짬 :  무게 받아오기
   if(weight<conditionWeight)//--------------------설정한 무게보다 낮으면
   {
     //ifttt로 물통 채우라는 알람보내기 ( 알람 너무 많이 옴 이거 해결하기)
     Serial.println("weight<conditionWeight ifttt알람보냄");
     char wei[20];
-    snprintf(wei,sizeof(wei),"%d",weight);
+    snprintf(wei,sizeof(wei),"%.2f",weight);
     send_webhook("smartFlowerPot",key,wei,"","");
   }
-
+  delay(100);
 }
 
 void wifiset()
