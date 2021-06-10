@@ -5,7 +5,7 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266HTTPClient.h>
-#include <Servo.h> 
+#include <Servo.h>
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 #include <Adafruit_NeoPixel.h>
@@ -14,6 +14,8 @@
 
 // Define Constants
 #define key "dp2pmH8w5fDxygupiFknDhX92YotQgbicf5jvKp9CIs"
+#define ID "MJU_Wireless"
+#define PW ""
 
 #define LED 0     //D3
 #define DHT11 2   //D4
@@ -23,60 +25,132 @@
 #define BUZZ 13   //D7
 #define SOIL A0   //A0
 
-// Declare Object 
+// Declare Object
 WiFiClient TCPClient;
 PubSubClient MQTTClient;
+HTTPClient MyHTTPClient;
 ESP8266WebServer HttpServer(80);
-Servo servo; 
+DynamicJsonDocument doc(2048);
+Servo servo;
 HX711 scale;
 
 // Initialize Variables
 float calibration_factor = -100000;
+int conditionHumid = 0;
+int conditionWeight = 0;
+int angle = 0;
+int temp = 0;
+int humid = 0;
+float temp1 = 0;
+float humid1 = 0;
+int weight = 0;
 
 // Declare Functions
 void ledOn();
 void ledOff();
 int getHumid();
 int readDHT11(int *readTemp, int* readHumid);
+void getWeather(float *temp, float *humid);
+void wifiset();
+void buzz(int value);
+void servofunc(int angle);
+void thingspeakpub(int num, int value);
+//webserverfn//
+void webhtml();
+void fnRoot();
+void fnStatus();
+void fnNotFound();
+void fnOn();
+void fnOff();
+void fnInput();
 
 void setup()
 {
   pinMode(LED, OUTPUT);
-  pinMode(DHT11PIN, INPUT);
+  pinMode(DHT11, INPUT);
+  pinMode(BUZZ, OUTPUT);
+
+  scale.begin(L_DATA, L_CLK);
+  scale.set_scale();
+  scale.tare();
+  long zero_factor = scale.read_average();
+
+  servo.attach(SERVO);
+
   Serial.begin(115200);
+  delay(500);
+
+  wifiset();
+  webhtml();
+  ledOn();
+
+  MQTTClient.setClient(TCPClient);
+  MQTTClient.setServer("mqtt.thingspeak.com",1883);
+  MQTTClient.connect("smartflowerpot");
 }
 
 void loop()
 {
+  myHttpServer.handleClient();
+  getHumid();
+  readDHT11(&temp, &humid);
+  getWeather(&temp1, &humid1);
+  Serial.println("온/습도 받아옴");
+  thingspeakpub(1,temp);
+  thingspeakpub(2,humid);
+  Serial.println("thingspeak publish");
+  Serial.println("lcd 출력완료");
+  myHttpServer.handleClient();
+  if(humid<conditionHumid)//--------------------설정한 습도값보다 낮으면
+  {
+    Serial.println("humid<conditionHumid");
+    Serial.println("습도 낮음");//체크
+    buzz(true);
+    servofunc(30);
+    delay(2000);
+    servofunc(0);
+  }
+  myHttpServer.handleClient();
+  getloadcell();//아직 안짬 :  무게 받아오기
+  if(weight<conditionWeight)//--------------------설정한 무게보다 낮으면
+  {
+    //ifttt로 물통 채우라는 알람보내기 ( 알람 너무 많이 옴 이거 해결하기)
+    Serial.println("weight<conditionWeight ifttt알람보냄");
+    char wei[20];
+    snprintf(wei,sizeof(wei),"%d",weight);
+    send_webhook("smartFlowerPot",key,wei,"","");
+  }
+
+  MQTTClient.loop();
 }
 
 void ledOn()
 {
   Adafruit_NeoPixel strip = Adafruit_NeoPixel(16, LED, NEO_GRB + NEO_KHZ800);
-  
-  strip.begin();
-  strip.show(); 
 
-  for(int i=0; i<strip.numPixels(); i++) 
-      strip.setPixelColor(i, strip.Color(255, 0, 255));
+  strip.begin();
+  strip.show();
+
+  for (int i = 0; i < strip.numPixels(); i++)
+    strip.setPixelColor(i, strip.Color(255, 0, 255));
   strip.show();
 }
 
 void ledOff()
 {
   Adafruit_NeoPixel strip = Adafruit_NeoPixel(16, LED, NEO_GRB + NEO_KHZ800);
-  
-  strip.begin();
-  strip.show(); 
 
-  for(int i=0; i<strip.numPixels(); i++) 
-      strip.setPixelColor(i, strip.Color(0, 0, 0));
+  strip.begin();
+  strip.show();
+
+  for (int i = 0; i < strip.numPixels(); i++)
+    strip.setPixelColor(i, strip.Color(0, 0, 0));
   strip.show();
 }
 
 int getHumid()
 {
-  int humid = (100-((float)analogRead(SOIL)/1024*100));
+  int humid = (100 - ((float)analogRead(SOIL) / 1024 * 100));
   return humid;
 }
 
@@ -85,17 +159,17 @@ int readDHT11(int *readTemp, int* readHumid)
 
   int dt[82] = {0,};
   //Phase 1
-  digitalWrite(DHT11PIN, 1);
-  pinMode(DHT11PIN, OUTPUT);
+  digitalWrite(DHT11, 1);
+  pinMode(DHT11, OUTPUT);
   delay(1);
-  digitalWrite(DHT11PIN, 0);
+  digitalWrite(DHT11, 0);
   delay(20);
-  pinMode(DHT11PIN, INPUT_PULLUP);
+  pinMode(DHT11, INPUT_PULLUP);
   /*
     while(1)
-      if(digitalRead(DHT11PIN)==1) break;
+      if(digitalRead(DHT11)==1) break;
     while(1)
-      if(digitalRead(DHT11PIN)==0) break;
+      if(digitalRead(DHT11)==0) break;
   */
   //Phase 2, 3
   int cnt = 0;
@@ -103,12 +177,12 @@ int readDHT11(int *readTemp, int* readHumid)
   {
     dt[cnt * 2] = micros();
     while (1)
-      if (digitalRead(DHT11PIN) == 1) break;
+      if (digitalRead(DHT11) == 1) break;
     dt[cnt * 2] = micros() - dt[cnt * 2];
 
     dt[cnt * 2 + 1] = micros();
     while (1)
-      if (digitalRead(DHT11PIN) == 0) break;
+      if (digitalRead(DHT11) == 0) break;
     dt[cnt * 2 + 1] = micros() - dt[cnt * 2 + 1];
   }
 
@@ -135,4 +209,145 @@ int readDHT11(int *readTemp, int* readHumid)
   //for(cnt=0;cnt<41;cnt++)
   //  Serial.printf("cnt:%d, dt[%d, %d]\r\n",cnt,dt[cnt*2],dt[cnt*2+1]);
   return 1;
+}
+
+void getWeather(float *temp, float *humid)
+{
+  myHTTPClient.begin("http://api.openweathermap.org/data/2.5/weather?q=seongnam&appid=95a4855b2d6b5d5228cc00bf3ed6c3e5");
+  int getResult = myHTTPClient.GET();
+  if (getResult == HTTP_CODE_OK) // 200
+  {
+    String receivedData = myHTTPClient.getString();
+    Serial.printf("%s\r\n\r\nEND\r\n\r\n", receivedData.c_str());
+    deserializeJson(doc, receivedData); // 해석 완료
+    float temp = (float)(doc["main"]["temp"]) - 273.0; // 기온
+    float humid = (float)doc["main"]["humidity"]; // 습도
+    delay(5000);
+  }
+}
+
+void wifiset()
+{
+  Serial.println("wifi setting start");
+  WiFi.begin(ID, PW);
+  while (1)
+  {
+    if (WiFi.status() == WL_CONNECTED)
+      break;
+    Serial.println(".");
+    delay(500);
+  }
+  Serial.println(WiFi.localIP());
+}
+
+void buzz(int value)
+{
+  if (value == 0)
+  {
+    digitalWrite(BUZZ, 0);
+  }
+  else
+  {
+    digitalWrite(BUZZ, 1);
+    delay(1000);
+    digitalWrite(BUZZ, 0);
+    delay(1000);
+  }
+}
+
+void servofunc(int angle)
+{
+  if (angle > 180)
+  {
+    angle = 180;
+    servo.write(angle);
+  }
+  if (angle < 0)
+  {
+    angle = 0 ;
+    servo.write(angle);
+  }
+}
+float getloadcell()
+{
+  scale.set_scale(calibration_factor);
+  return scale.get_units();
+}
+
+void webhtml()
+{
+  myHttpServer.on("/", fnRoot );
+  myHttpServer.on("/status", fnStatus );
+  myHttpServer.on("/on", fnOn );
+  myHttpServer.on("/off", fnOff );
+  myHttpServer.on("/input", fnInput );
+  myHttpServer.onNotFound(fnNotFound);
+  myHttpServer.begin();
+}
+
+void fnRoot(void)//callback function
+{
+  char buff[2000];//html buff
+  strcpy(buff, "<html>\r\n2021_IoT_smartFlowerPot<br>\r\n<a href=/status>Check Status</a><br>\r\n<a href=/on>LED On</a><br>\r\n<a href=/off>LED Off</a><br>\r\n<form method=\"get\" action=\"input\">Condition maintain humid <input type =\"text\" name=\"Humid\"><input type=\"submit\" ></form>\r\n<form method=\"get\" action=\"input\">Condition maintain weight <input type =\"text\" name=\"Weight\"><input type=\"submit\" ></form>\r\n</html>");
+  myHttpServer.send(200, "text/html", buff); //text type html send
+}
+void fnStatus(void)
+{
+  char buff[2000];//html buff
+  sprintf(buff, "<html>\r\n temp condition : %d<br>\r\n\r\n weight condition : %d<br>\r\n</html>", conditionHumid, conditionWeight);
+  myHttpServer.send(200, "text/html", buff);
+}
+void fnNotFound()
+{
+  myHttpServer.send(404, "text/plain", "Wrong");
+}
+void fnOn()
+{
+  ledOn();
+  myHttpServer.send(200, "text/html", "led on");
+}
+void fnOff()
+{
+  ledOff();
+  myHttpServer.send(200, "text/html", "led off");
+}
+void fnInput()
+{
+  char co_Humid[400];
+  char co_Weight[400];
+
+  if (myHttpServer.hasArg("Humid"))
+  {
+    strcpy(co_Humid, "<meta charset=utf-8>");
+    strcat(co_Humid, "습도 조건 변경 (0~100) : ");
+    strcat(co_Humid, myHttpServer.arg("Humid").c_str());
+    conditionHumid = atoi(myHttpServer.arg("Humid").c_str());
+
+    if (conditionHumid >= 100) conditionHumid = 100;
+    else if (conditionHumid < 0) conditionHumid = 0;
+
+    myHttpServer.send(200, "text/html", co_Humid);
+
+  }
+  if (myHttpServer.hasArg("Weight"))
+  {
+    strcpy(co_Weight, "<meta charset=utf-8>");
+    strcat(co_Weight, "무게 조건 변경 (0~100) : ");
+    strcat(co_Weight, myHttpServer.arg("Weight").c_str());
+    conditionWeight = atoi(myHttpServer.arg("Weight").c_str());
+
+    if (conditionWeight >= 100) conditionWeight = 100;
+    else if (conditionWeight < 0) conditionWeight = 0;
+
+    myHttpServer.send(200, "text/html", co_Weight);
+
+  }
+  else myHttpServer.send(200, "text/plain", "Somthing wrong");
+}
+void thingspeakpub(int num, int value)
+{
+  char buff[5], pub[1000];
+  snprintf(buff, sizeof(buff), "%d", value);
+  snprintf(pub, sizeof(pub), "channels/1393641/publish/fields/field%d/0NX20M0E910B87BB", num);
+  MQTTClient.publish(pub, buff);
 }
