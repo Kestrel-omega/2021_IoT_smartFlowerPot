@@ -10,9 +10,15 @@
 #define key "dp2pmH8w5fDxygupiFknDhX92YotQgbicf5jvKp9CIs"
 int soilhumid=0;
 float weight=0;
+float temp1;
+float humid1;
+int temp;
+int humid;
+int cnt=0;
 WiFiClient TCPClient;
 PubSubClient MQTTClient;
-
+HTTPClient clt;
+DynamicJsonDocument doc(2048);
 ESP8266WebServer myHttpServer(80);
 int conditionHumid = 0;
 int conditionWeight = 0;
@@ -33,34 +39,19 @@ int angle=0;
 void loop()
 {
   myHttpServer.handleClient();
-  //int temp=1;
-  //int humid=2;
-  float temp1;
-  float humid1;
+  
+  
   soilhumid=getHumid();
   Serial.printf("현재 흙 습도 : %d\n\r\n",soilhumid);//-----------2. humid and temp 받아오기
-  //readDHT11(&temp, &humid);
-  myClient.begin("http://api.openweathermap.org/data/2.5/weather?q=youngin&appid=95a4855b2d6b5d5228cc00bf3ed6c3e5");
-  int getResult = myClient.GET();
-  if(getResult == HTTP_CODE_OK) // 200
-  {
-    String receivedData = myClient.getString();
-    deserializeJson(doc, receivedData); // 해석 완료
-    const char* city = doc["name"]; // 도시 이름
-    float temp = (float)(doc["main"]["temp"]) - 273.0; // 기온
-    float humid = (float)doc["main"]["humidity"]; // 습도
-    //Serial.printf("%s의 현재 온도는 %f°C, 습도는 %f%%입니다.\r\n",city, temp, humid);
-  }
-  else Serial.printf("Error, code: %d\r\n", getResult);
-  delay(1000);
-  //Serial.printf("용인의 온도 : %f 습도 : %f\n", temp1,humid1);
-  MQTTClient.loop();
+  readDHT11(&temp, &humid);
+  getWeather();
+  Serial.printf("%d\n%d\n",temp,humid);
+  //MQTTClient.loop();
   //thingspeakpub(1,temp);
   //MQTTClient.loop();
   //thingspeakpub(2,soilhumid);// 앞에는 field 번호 뒤에는 값 thingspeak가 15초가 최소간격이라 타이밍 문제 있음 
   //Serial.println("thingspeak publish");
-  myHttpServer.handleClient();
-  if(humid<conditionHumid)//--------------------설정한 습도값보다 낮으면
+  if(soilhumid<conditionHumid)//--------------------설정한 습도값보다 낮으면
   {
     Serial.println("humid<conditionHumid");
     buzz(true);
@@ -71,14 +62,17 @@ void loop()
   else buzz(0);
   myHttpServer.handleClient();
   weight=getloadcell()+1;
-  Serial.printf("물통 무게! : %f\n",weight);//아직 안짬 :  무게 받아오기
+  
+  Serial.printf("물통 무게! : %f\n",weight);
   if(weight<conditionWeight)//--------------------설정한 무게보다 낮으면
   {
-    //ifttt로 물통 채우라는 알람보내기 ( 알람 너무 많이 옴 이거 해결하기)
+   
+      //ifttt로 물통 채우라는 알람보내기 
     Serial.println("weight<conditionWeight ifttt알람보냄");
     char wei[20];
     snprintf(wei,sizeof(wei),"%.2f",weight);
     send_webhook("smartFlowerPot",key,wei,"","");
+ 
   }
   delay(100);
 }
@@ -109,7 +103,6 @@ void webhtml()
   myHttpServer.begin();
 }
 
-
 /////////////////////////////////////webserverFn//////////////////////////////////////
 void fnRoot(void)//callback function
 {
@@ -120,7 +113,7 @@ void fnRoot(void)//callback function
 void fnStatus(void)
 {
   char buff[2000];//html buff
-  sprintf(buff,"<html>\r\n temp condition : %d<br>\r\n\r\n weight condition : %d<br>\r\n</html>",conditionHumid,conditionWeight);
+  sprintf(buff,"<html>\r\n <meta charset=utf-8>실내온도 : %d<br>\r\n\r\n 외부온도 : %.2f<br>\r\n<meta charset=utf-8>실내습도 : %d<br><meta charset=utf-8>흙 습도 : %d<br></html>",temp,temp1,humid,soilhumid);
   myHttpServer.send(200,"text/html",buff);
 }
 void fnNotFound()
@@ -176,4 +169,24 @@ void thingspeakpub(int num,int value)
   snprintf(buff,sizeof(buff),"%d",value);
   snprintf(pub,sizeof(pub),"channels/1393641/publish/fields/field%d/0NX20M0E910B87BB",num);
   MQTTClient.publish(pub,buff);
+}
+void getWeather()
+{
+  clt.begin("http://api.openweathermap.org/data/2.5/weather?q=yongin&appid=710a19c0a43aa3674ef3fa64c6a824ff");
+  if(clt.GET()==HTTP_CODE_OK)
+  {
+    Serial.printf("HTTP Start........................\r\n");
+    delay(1000);
+    String data=clt.getString();
+    //Serial.printf("%s",data.c_str());
+    deserializeJson(doc,data);
+    temp1 = (float)(doc["main"]["temp"]) - 273.0; // 기온
+    humid1 = (float)doc["main"]["humidity"]; // 습도
+    Serial.printf("현재기온 : %f\r\n",temp1);
+    Serial.printf("현재습도 : %f\r\n",humid1);
+  }
+  else  Serial.printf("Server something wrong!\n\r");
+  Serial.printf("\r\n\r\nThis is END....\r\n\r\n");
+  clt.end();
+  
 }
