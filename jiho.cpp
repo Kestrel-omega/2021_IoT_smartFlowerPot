@@ -2,10 +2,8 @@
 
 #include <Adafruit_NeoPixel.h>
 #include <Arduino.h>
-HTTPClient myClient;
 const int soilSensorPin = A0;
 // ESP8266 and sensors initialize
-DynamicJsonDocument doc(2048);
 void sensorSetup()
 {
   // LED Setting
