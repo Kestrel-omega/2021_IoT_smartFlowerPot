@@ -5,19 +5,12 @@
 
 #include <ESP8266WiFi.h>
 #include <Wire.h>
-#include <LiquidCrystal.h>
 #include <ESP8266HTTPClient.h>
 #include <ArduinoJson.h>
 #include <Adafruit_NeoPixel.h>
 
-#define RS 0 //D03
-#define RW 2 //D04
-#define DB4 14 //D05
-#define DB5 15 //D08
-#define DB6 3 //RX
-#define DB7 1 //TX
-#define LED 10 //SD3
-#define DHT11PIN 16 //D01
+#define LED 0 //D3
+#define DHT11PIN 2 //D4
 #define sensorPin 99////////////////////수정필요
 //HTTPClient MyClient;
 
